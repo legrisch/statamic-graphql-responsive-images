@@ -1,0 +1,19 @@
+{
+    "name": "legrisch/statamic-graphl-responsive-images",
+    "autoload": {
+        "psr-4": {
+            "Legrisch\\StatamicGraphlResponsiveImages\\": "src"
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "Statamic Graphl Responsive Images",
+            "description": "Statamic Graphl Responsive Images addon"
+        },
+        "laravel": {
+            "providers": [
+                "Legrisch\\StatamicGraphlResponsiveImages\\ServiceProvider"
+            ]
+        }
+    }
+}
