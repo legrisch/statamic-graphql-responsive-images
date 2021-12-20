@@ -1,6 +1,6 @@
 <?php
 
-namespace Legrisch\StatamicGraphlResponsiveImages;
+namespace Legrisch\StatamicGraphQlResponsiveImages;
 
 use Statamic\Providers\AddonServiceProvider;
 use Statamic\Statamic;
