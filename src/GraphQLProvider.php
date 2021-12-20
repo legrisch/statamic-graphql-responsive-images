@@ -20,13 +20,13 @@ class GraphQLProvider
 
   private static function manipulateImage(Asset $asset, int $width, int $height, bool $webp): string
   {
-    if ($width) {
+    if (isset($width)) {
       $options['w'] = $width;
       $options['h'] = $height;
     }
 
-    if (isset($webp)) {
-      $options['format'] = "webp";
+    if (isset($webp) && $webp) {
+      $options['fm'] = "webp";
     }
 
     $url = Image::manipulate($asset, $options);
