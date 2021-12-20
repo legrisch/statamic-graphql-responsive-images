@@ -1,14 +1,23 @@
 {
     "name": "legrisch/statamic-graphl-responsive-images",
+    "description": "A Statamic CMS GraphQL Addon that provides a srcset property on AssetInterface queries.",
+    "type": "statamic-addon",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Legrisch\\StatamicGraphlResponsiveImages\\": "src"
         }
     },
+    "authors": [
+        {
+          "name": "Grischa Erbe",
+          "email": "grischa.erbe@googlemail.com"
+        }
+      ],
     "extra": {
         "statamic": {
             "name": "Statamic Graphl Responsive Images",
-            "description": "Statamic Graphl Responsive Images addon"
+            "description": "A Statamic CMS GraphQL Addon that provides a srcset property on AssetInterface queries."
         },
         "laravel": {
             "providers": [
