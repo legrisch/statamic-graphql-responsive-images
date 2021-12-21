@@ -127,6 +127,11 @@ class GraphQLProvider
     }
   }
 
+  static public function calculateAspectRatioFit(int $srcWidth, int $srcHeight, int $maxWidth, int $maxHeight): array {
+    $ratio = min($maxWidth / $srcWidth, $maxHeight / $srcHeight);
+    return [$srcWidth * $ratio, $srcHeight * $ratio];
+  }
+
   static public function createSrc(
     Asset $asset,
     ?int $width,
@@ -140,8 +145,10 @@ class GraphQLProvider
     $maxWidth = config('statamic.graphql-responsive-images.src-max-width');
     $maxHeight = config('statamic.graphql-responsive-images.src-max-height');
 
-    $newWidth = min($asset->width(), $maxWidth);
-    $newHeight = min($asset->height(), $maxHeight);
+    $newWidthAndHeight = self::calculateAspectRatioFit($asset->width(), $asset->height(), $maxWidth, $maxHeight);
+
+    $newWidth = $newWidthAndHeight[0];
+    $newHeight = $newWidthAndHeight[1];    
 
     if (isset($width) && isset($height)) {
       $newWidth = $width;
