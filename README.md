@@ -15,6 +15,7 @@
     - [Example](#example-1)
       - [Query](#query-1)
       - [Response](#response-1)
+- [Notes](#notes)
 - [License](#license)
 
 ## How to Install
@@ -126,6 +127,10 @@ query {
   }
 }
 ```
+
+## Notes
+
+Please be aware that this addon comes with the usual risks of dynamic HTTP based image manipulation.
 
 ---
 
