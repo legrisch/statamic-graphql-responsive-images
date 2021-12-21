@@ -1,7 +1,7 @@
 <?php
 
 return [
-  "widths" => [
+  "srcset-widths" => [
     2048,
     1920,
     1800,
@@ -22,4 +22,7 @@ return [
     100,
     10
   ],
+
+  "src-max-width" => 2000,
+  "src-max-height" => 2000,
 ];
