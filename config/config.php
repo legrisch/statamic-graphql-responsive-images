@@ -23,6 +23,6 @@ return [
     10
   ],
 
-  "src-max-width" => 2000,
-  "src-max-height" => 2000,
+  "src-max-width" => 2800,
+  "src-max-height" => 2800,
 ];
