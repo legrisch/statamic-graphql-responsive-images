@@ -67,7 +67,7 @@ class GraphQLProvider
   private static function validateSrcsetArguments(
     ?int $width,
     ?int $height,
-    ?float $ratio,
+    ?float $ratio
   ) {
     // No mixing of ratio and width/height
     if ((isset($width) || isset($height)) && isset($ratio)) {
@@ -94,7 +94,7 @@ class GraphQLProvider
     ?int $width,
     ?int $height,
     ?float $ratio,
-    int $blur,
+    int $blur
   ) {    
     if (isset($width) && isset($height) && isset($ratio)) {
       throw new \Exception("Parameters width and height and ratio mixed. Please provide either parameters width and height or parameter ratio.", 1);
