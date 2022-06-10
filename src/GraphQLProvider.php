@@ -2,14 +2,14 @@
 
 namespace Legrisch\StatamicGraphQlResponsiveImages;
 
+use Illuminate\Support\Facades\Log;
+use League\Glide\Server;
+use Statamic\Assets\Asset;
 use Statamic\Facades\GraphQL;
 use Statamic\Facades\Image;
 use Statamic\Facades\URL;
-use Illuminate\Support\Facades\Log;
-use Statamic\Assets\Asset;
-use Statamic\Support\Str;
-use League\Glide\Server;
 use Statamic\Imaging\ImageGenerator;
+use Statamic\Support\Str;
 
 class GraphQLProvider
 {
@@ -25,7 +25,7 @@ class GraphQLProvider
         return self::$imageGenerator;
     }
 
-    private static function getGlideServer()
+    private static function getGlideServer(): Server
     {
         if (!self::$glideServer) {
             self::$glideServer = app(Server::class);
@@ -61,9 +61,23 @@ class GraphQLProvider
         if ($base64) {
             $path = self::getImageGenerator()->generateByAsset($asset, $options);
             $source = base64_encode(self::getGlideServer()->getCache()->read($path));
-            return "data:" . self::getGlideServer()->getCache()->getMimetype($path) . ";base64,{$source}";
+            $cache = self::getGlideServer()->getCache();
+            if (method_exists($cache, 'getMimetype')) {
+                // Flysystem V1
+                return "data:" . $cache->getMimetype($path) . ";base64,{$source}";
+            } else if (method_exists($cache, 'mimeType')) {
+                // Flysystem V3 breaking change
+                return "data:" . $cache->mimeType($path) . ";base64,{$source}";
+            }
         } else {
-            $url = Image::manipulate($asset, $options);
+            $manipulator = Image::manipulate($asset);
+
+            foreach ($options as $key => $value) {
+                $manipulator->$key($value);
+            }
+
+            $url = $manipulator->build();
+
             return self::makeAbsoluteUrl($url);
         }
     }
