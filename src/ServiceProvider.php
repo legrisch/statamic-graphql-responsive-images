@@ -2,11 +2,18 @@
 
 namespace Legrisch\StatamicGraphQlResponsiveImages;
 
+use Statamic\Events\AssetSaved;
+use Statamic\Events\GlideImageGenerated;
 use Statamic\Providers\AddonServiceProvider;
 use Statamic\Statamic;
 
 class ServiceProvider extends AddonServiceProvider
 {
+
+    protected $listen = [
+        AssetSaved::class => [AssetEventListener::class],
+        GlideImageGenerated::class => [GlideEventListener::class]
+    ];
 
     public function register()
     {

@@ -25,7 +25,7 @@ class GraphQLProvider
         return self::$imageGenerator;
     }
 
-    private static function getGlideServer(): Server
+    public static function getGlideServer(): Server
     {
         if (!self::$glideServer) {
             self::$glideServer = app(Server::class);

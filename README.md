@@ -34,6 +34,8 @@ php artisan vendor:publish --tag=statamic.graphql-responsive-images --force
 
 and see *config → statamic → graphql-responsive-images.php* for configuration options.
 
+> Enable `experimental-cache-management` to automatically clear the Glide cache for images that have been modified, e.g. when the focal point has changed. 
+
 ## How to Use
 
 This addon aims to serve the most typical situation: Statamic is serving an image and you need to implement the image in your frontend. Statamic currently provides no means of using [Glide](https://statamic.dev/tags/glide) with GraphQL. This addon adds two fields to any `AssetInterface`: `src` and `srcset`.
