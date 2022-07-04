@@ -216,7 +216,7 @@ class GraphQLProvider
 
         foreach ($widths as $width) {
             $height = $width / $ratio;
-            $url = self::manipulateImage($asset, $width, $height, $webp, false, 0, false);
+            $url = self::manipulateImage($asset, $width, $height, $webp, false, 0, true);
             $itemString = $url . " " . $width . "w";
             array_push($srcSetItems, $itemString);
         }
