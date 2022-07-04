@@ -3,8 +3,6 @@
 return [
     "base-url" => config('app.url'),
 
-    "experimental-cache-management" => false,
-
     "srcset-widths" => [
         2048,
         1920,

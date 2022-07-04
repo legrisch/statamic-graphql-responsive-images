@@ -5,6 +5,7 @@ namespace Legrisch\StatamicGraphQlResponsiveImages;
 use Illuminate\Support\Facades\Log;
 use League\Glide\Server;
 use Statamic\Assets\Asset;
+use Statamic\Facades\Config;
 use Statamic\Facades\GraphQL;
 use Statamic\Facades\Image;
 use Statamic\Facades\URL;
@@ -42,8 +43,10 @@ class GraphQLProvider
         return URL::tidy(Str::ensureLeft($url, $baseUrl));
     }
 
-    private static function manipulateImage(Asset $asset, int $width, int $height, bool $webp, ?bool $base64, int $blur): string
+    private static function manipulateImage(Asset $asset, int $width, int $height, bool $webp, ?bool $base64, int $blur, bool $crop): string
     {
+        $options = [];
+
         if (isset($width)) {
             $options['w'] = $width;
             $options['h'] = $height;
@@ -57,6 +60,9 @@ class GraphQLProvider
             $options['blur'] = $blur;
         }
 
+        if ($crop && Config::get('statamic.assets.auto_crop')) {
+            $options['fit'] = 'crop-' . $asset->get('focus', '50-50');
+        }
 
         if ($base64) {
             $path = self::getImageGenerator()->generateByAsset($asset, $options);
@@ -69,17 +75,14 @@ class GraphQLProvider
                 // Flysystem V3 breaking change
                 return "data:" . $cache->mimeType($path) . ";base64,{$source}";
             }
-        } else {
-            $manipulator = Image::manipulate($asset);
-
-            foreach ($options as $key => $value) {
-                $manipulator->$key($value);
-            }
-
-            $url = $manipulator->build();
-
-            return self::makeAbsoluteUrl($url);
         }
+
+        $manipulator = Image::manipulate($asset);
+        foreach ($options as $key => $value) {
+            $manipulator->$key($value);
+        }
+        $url = $manipulator->build();
+        return self::makeAbsoluteUrl($url);
     }
 
     private static function validateSrcsetArguments(
@@ -117,7 +120,7 @@ class GraphQLProvider
     )
     {
         if (isset($width) && isset($height) && isset($ratio)) {
-            throw new \Exception("Parameters width and height and ratio mixed. Please provide either parameters width and height or parameter ratio.", 1);
+            throw new \Exception("Parameters width, height and ratio mixed. Please provide either parameters width and height or parameter ratio.", 1);
         }
 
         if (isset($ratio) && $ratio <= 0) {
@@ -172,17 +175,23 @@ class GraphQLProvider
         $newWidth = $newWidthAndHeight[0];
         $newHeight = $newWidthAndHeight[1];
 
+        $crop = false;
+
         if (isset($width) && isset($height)) {
             $newWidth = $width;
             $newHeight = $height;
+            $crop = true;
         } else if (isset($width) && isset($ratio)) {
             $newWidth = $width;
             $newHeight = $width / $ratio;
+            $crop = true;
         } else if (isset($height) && isset($ratio)) {
             $newHeight = $height;
             $newWidth = $height * $ratio;
+            $crop = true;
         } else if (isset($ratio)) {
             $newHeight = $newWidth / $ratio;
+            $crop = true;
         } else if (isset($width)) {
             $newWidth = $width;
             $newHeight = $width / ($asset->width() / $asset->height());
@@ -191,7 +200,7 @@ class GraphQLProvider
             $newWidth = $height * ($asset->width() / $asset->height());
         }
 
-        return self::manipulateImage($asset, $newWidth, $newHeight, $webp, $base64, $blur);
+        return self::manipulateImage($asset, $newWidth, $newHeight, $webp, $base64, $blur, $crop);
     }
 
     static public function createSrcSet(
@@ -207,7 +216,7 @@ class GraphQLProvider
 
         foreach ($widths as $width) {
             $height = $width / $ratio;
-            $url = self::manipulateImage($asset, $width, $height, $webp, false, 0);
+            $url = self::manipulateImage($asset, $width, $height, $webp, false, 0, false);
             $itemString = $url . " " . $width . "w";
             array_push($srcSetItems, $itemString);
         }
