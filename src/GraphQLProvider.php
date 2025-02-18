@@ -43,7 +43,7 @@ class GraphQLProvider
         return URL::tidy(Str::ensureLeft($url, $baseUrl));
     }
 
-    private static function manipulateImage(Asset $asset, int $width, int $height, bool $webp, ?bool $base64, int $blur, bool $crop): string
+    private static function manipulateImage(Asset $asset, int $width, int $height, bool $webp, ?bool $base64, int $blur, bool $crop, ?int $quality): string
     {
         $options = [];
 
@@ -58,6 +58,10 @@ class GraphQLProvider
 
         if (isset($blur) && $blur > 0) {
             $options['blur'] = $blur;
+        }
+
+        if (isset($quality)) {
+            $options['q'] = $quality;
         }
 
         if ($crop && Config::get('statamic.assets.auto_crop')) {
@@ -86,11 +90,10 @@ class GraphQLProvider
     }
 
     private static function validateSrcsetArguments(
-        ?int   $width,
-        ?int   $height,
+        ?int $width,
+        ?int $height,
         ?float $ratio
-    )
-    {
+    ) {
         // No mixing of ratio and width/height
         if ((isset($width) || isset($height)) && isset($ratio)) {
             throw new \Exception("Parameters width and height and ratio mixed. Please provide either parameters width and height or parameter ratio.", 1);
@@ -113,12 +116,11 @@ class GraphQLProvider
     }
 
     private static function validateSrcArguments(
-        ?int   $width,
-        ?int   $height,
+        ?int $width,
+        ?int $height,
         ?float $ratio,
-        int    $blur
-    )
-    {
+        int $blur
+    ) {
         if (isset($width) && isset($height) && isset($ratio)) {
             throw new \Exception("Parameters width, height and ratio mixed. Please provide either parameters width and height or parameter ratio.", 1);
         }
@@ -157,15 +159,15 @@ class GraphQLProvider
     }
 
     static public function createSrc(
-        Asset  $asset,
-        ?int   $width,
-        ?int   $height,
+        Asset $asset,
+        ?int $width,
+        ?int $height,
         ?float $ratio,
-        bool   $webp,
-        bool   $base64,
-        int    $blur
-    )
-    {
+        bool $webp,
+        bool $base64,
+        int $blur,
+        ?int $quality
+    ) {
 
         $maxWidth = config('statamic.graphql-responsive-images.src-max-width');
         $maxHeight = config('statamic.graphql-responsive-images.src-max-height');
@@ -200,15 +202,15 @@ class GraphQLProvider
             $newWidth = $height * ($asset->width() / $asset->height());
         }
 
-        return self::manipulateImage($asset, $newWidth, $newHeight, $webp, $base64, $blur, $crop);
+        return self::manipulateImage($asset, $newWidth, $newHeight, $webp, $base64, $blur, $crop, $quality);
     }
 
     static public function createSrcSet(
         Asset $asset,
         float $ratio,
-        ?bool $webp
-    )
-    {
+        ?bool $webp,
+        ?int $quality
+    ) {
 
         $widths = config('statamic.graphql-responsive-images.srcset-widths');
 
@@ -216,7 +218,7 @@ class GraphQLProvider
 
         foreach ($widths as $width) {
             $height = $width / $ratio;
-            $url = self::manipulateImage($asset, $width, $height, $webp, false, 0, true);
+            $url = self::manipulateImage($asset, $width, $height, $webp, false, 0, true, $quality);
             $itemString = $url . " " . $width . "w";
             array_push($srcSetItems, $itemString);
         }
@@ -225,14 +227,15 @@ class GraphQLProvider
     }
 
     static private function parseRatio(
-        ?int   $width,
-        ?int   $height,
+        ?int $width,
+        ?int $height,
         ?float $ratio,
-        Asset  $asset
-    ): float
-    {
-        if (isset($ratio)) return $ratio;
-        if (isset($width) && isset($height)) return $width / $height;
+        Asset $asset
+    ): float {
+        if (isset($ratio))
+            return $ratio;
+        if (isset($width) && isset($height))
+            return $width / $height;
         return $asset->width() / $asset->height();
     }
 
@@ -251,6 +254,9 @@ class GraphQLProvider
                 ],
                 "webp" => [
                     'type' => GraphQL::boolean(),
+                ],
+                "quality" => [
+                    'type' => GraphQL::int(),
                 ]
             ];
 
@@ -259,18 +265,20 @@ class GraphQLProvider
                 'args' => $arguments,
                 'resolve' => function (Asset $asset, $args) {
                     try {
-                        if ($asset === null || !$asset->isImage()) return null;
+                        if ($asset === null || !$asset->isImage())
+                            return null;
 
                         $width = $args["width"] ?? null;
                         $height = $args["height"] ?? null;
                         $ratio = $args["ratio"] ?? null;
                         $webp = $args["webp"] ?? false;
+                        $quality = $args["quality"] ?? null;
 
                         self::validateSrcsetArguments($width, $height, $ratio);
 
                         $ratio = self::parseRatio($width, $height, $ratio, $asset);
 
-                        return self::createSrcSet($asset, $ratio, $webp);
+                        return self::createSrcSet($asset, $ratio, $webp, $quality);
                     } catch (\Throwable $th) {
                         Log::error("Unable to resolve field 'srcset': " . $th->getMessage());
                         throw new \Exception("Unable to resolve field 'srcset': " . $th->getMessage(), 1);
@@ -298,6 +306,9 @@ class GraphQLProvider
                 ],
                 "blur" => [
                     'type' => GraphQL::int(),
+                ],
+                "quality" => [
+                    'type' => GraphQL::int(),
                 ]
             ];
 
@@ -306,7 +317,8 @@ class GraphQLProvider
                 'args' => $arguments,
                 'resolve' => function (Asset $asset, $args) {
                     try {
-                        if ($asset === null || !$asset->isImage()) return null;
+                        if ($asset === null || !$asset->isImage())
+                            return null;
 
                         $width = $args["width"] ?? null;
                         $height = $args["height"] ?? null;
@@ -314,10 +326,11 @@ class GraphQLProvider
                         $webp = $args["webp"] ?? false;
                         $base64 = $args["base64"] ?? false;
                         $blur = $args["blur"] ?? 0;
+                        $quality = $args["quality"] ?? null;
 
                         self::validateSrcArguments($width, $height, $ratio, $blur);
 
-                        return self::createSrc($asset, $width, $height, $ratio, $webp, $base64, $blur);
+                        return self::createSrc($asset, $width, $height, $ratio, $webp, $base64, $blur, $quality);
                     } catch (\Throwable $th) {
                         Log::error("Unable to resolve field 'src': " . $th->getMessage());
                         throw new \Exception("Unable to resolve field 'src': " . $th->getMessage(), 1);
