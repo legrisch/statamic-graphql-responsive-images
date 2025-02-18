@@ -20,7 +20,7 @@
 
 ## How to Install
 
-``` bash
+```bash
 composer require legrisch/statamic-graphql-responsive-images
 ```
 
@@ -32,9 +32,9 @@ This addon can be configured. To publish the configuration run
 php artisan vendor:publish --tag=statamic.graphql-responsive-images --force
 ```
 
-and see *config → statamic → graphql-responsive-images.php* for configuration options.
+and see _config → statamic → graphql-responsive-images.php_ for configuration options.
 
-> Enable `experimental-cache-management` to automatically clear the Glide cache for images that have been modified, e.g. when the focal point has changed. 
+> Enable `experimental-cache-management` to automatically clear the Glide cache for images that have been modified, e.g. when the focal point has changed.
 
 ## How to Use
 
@@ -54,6 +54,7 @@ src(
   ratio: Float
   webp: Boolean
   width: Int
+  quality: Int
 ): String
 ```
 
@@ -99,6 +100,7 @@ srcset(
   ratio: Float
   webp: Boolean
   width: Int
+  quality: Int
 ): String
 ```
 
